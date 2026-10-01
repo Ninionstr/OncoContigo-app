@@ -1,0 +1,20 @@
+node_modules/
+.next/
+dist/
+out/
+*.tsbuildinfo
+next-env.d.ts
+
+# Entorno y datos locales
+.env
+.env.local
+*.db
+*.db-journal
+
+# Sistema
+.DS_Store
+*.log
+
+# Carpetas locales (no se suben)
+_originales/
+.claude/

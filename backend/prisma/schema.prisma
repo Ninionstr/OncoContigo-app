@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// SQLite no soporta enums: los valores permitidos están en src/lib/constants.ts
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  fullName     String
+  role         String // PATIENT | DOCTOR
+  createdAt    DateTime @default(now())
+
+  patientProfile   PatientProfile?  @relation("PatientUser")
+  assignedPatients PatientProfile[] @relation("AssignedDoctor")
+  symptomLogs      SymptomLog[]
+  alerts           Alert[]
+}
+
+model PatientProfile {
+  id            String  @id @default(cuid())
+  userId        String  @unique
+  user          User    @relation("PatientUser", fields: [userId], references: [id], onDelete: Cascade)
+  diagnosis     String
+  treatmentType String // CHEMOTHERAPY | RADIATION | SURGERY | IMMUNOTHERAPY | HORMONE_THERAPY | OTHER
+  doctorId      String?
+  doctor        User?   @relation("AssignedDoctor", fields: [doctorId], references: [id])
+}
+
+model SymptomLog {
+  id            String   @id @default(cuid())
+  patientId     String
+  patient       User     @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  painLevel     Int
+  fever         Boolean
+  temperature   Float?
+  nauseaLevel   Int
+  fatigueLevel  Int
+  appetiteLevel Int
+  notes         String?
+  overallStatus String // GOOD | FAIR | POOR | CRITICAL
+  loggedDate    DateTime @default(now())
+  alerts        Alert[]
+
+  @@index([patientId, loggedDate])
+}
+
+model Alert {
+  id           String      @id @default(cuid())
+  patientId    String
+  patient      User        @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  symptomLogId String?
+  symptomLog   SymptomLog? @relation(fields: [symptomLogId], references: [id], onDelete: SetNull)
+  severity     String // MEDIUM | HIGH | CRITICAL
+  message      String
+  status       String      @default("ACTIVE") // ACTIVE | RESOLVED
+  createdAt    DateTime    @default(now())
+  resolvedAt   DateTime?
+
+  @@index([patientId, status])
+}
