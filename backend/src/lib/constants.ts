@@ -1,4 +1,4 @@
-export const ROLES = ['PATIENT', 'DOCTOR'] as const;
+export const ROLES = ['PATIENT', 'DOCTOR', 'CAREGIVER'] as const;
 export type Role = (typeof ROLES)[number];
 
 export const TREATMENT_TYPES = [

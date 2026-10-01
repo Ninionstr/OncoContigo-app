@@ -13,6 +13,7 @@ import {
   ClipboardList,
   LineChart,
   Bell,
+  HeartHandshake,
   ArrowRight,
   LogOut,
 } from 'lucide-react';
@@ -216,7 +217,7 @@ export default function PatientDashboard() {
         )}
 
         {/* Accesos principales (tarjetas, sin emojis) */}
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           <ActionCard
             href="/patient/symptoms/new"
             icon={<ClipboardList className="h-6 w-6" />}
@@ -235,6 +236,12 @@ export default function PatientDashboard() {
             icon={<Bell className="h-6 w-6" />}
             title="Mis alertas"
             desc={`${alerts.length} registrada${alerts.length === 1 ? '' : 's'}`}
+          />
+          <ActionCard
+            href="/patient/caregivers"
+            icon={<HeartHandshake className="h-6 w-6" />}
+            title="Mis cuidadores"
+            desc="Quién te acompaña"
           />
         </div>
       </section>

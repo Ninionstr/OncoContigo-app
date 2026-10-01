@@ -16,7 +16,8 @@ export function PageShell({
 }: {
   eyebrow: string;
   title: string;
-  backHref: string;
+  /** Si se omite, no se muestra el enlace "Volver al panel" (páginas de inicio). */
+  backHref?: string;
   maxWidth?: string;
   children: React.ReactNode;
 }) {
@@ -50,13 +51,15 @@ export function PageShell({
       </header>
 
       <section className={`mx-auto ${maxWidth} px-6 py-8`}>
-        <Link
-          href={backHref}
-          className="mb-6 inline-flex items-center text-sm font-semibold text-brand-600 hover:underline"
-        >
-          <ArrowLeft className="mr-1 h-4 w-4" />
-          Volver al panel
-        </Link>
+        {backHref && (
+          <Link
+            href={backHref}
+            className="mb-6 inline-flex items-center text-sm font-semibold text-brand-600 hover:underline"
+          >
+            <ArrowLeft className="mr-1 h-4 w-4" />
+            Volver al panel
+          </Link>
+        )}
         {children}
       </section>
     </main>

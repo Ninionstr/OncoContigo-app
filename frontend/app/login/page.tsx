@@ -30,6 +30,7 @@ export default function LoginPage() {
       const decoded = JSON.parse(atob(res.data.accessToken.split('.')[1]));
       if (decoded.role === 'PATIENT') router.push('/patient/dashboard');
       if (decoded.role === 'DOCTOR') router.push('/doctor/dashboard');
+      if (decoded.role === 'CAREGIVER') router.push('/caregiver/dashboard');
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         setError(err.response?.data?.error || 'No pudimos iniciar tu sesión. Revisa tu correo y contraseña.');
@@ -154,6 +155,12 @@ export default function LoginPage() {
                 <Link href="/register" className="font-semibold text-coral-600 hover:underline">
                   Crear cuenta
                 </Link>
+                <p className="mt-2">
+                  ¿Acompañas a un paciente?{' '}
+                  <Link href="/register/caregiver" className="font-semibold text-brand-600 hover:underline">
+                    Únete con un código
+                  </Link>
+                </p>
               </div>
 
               {/* Accesos de prueba — SOLO para demo/MVP. Quitar en producción. */}
@@ -161,6 +168,7 @@ export default function LoginPage() {
                 <p className="font-semibold text-ink">Accesos de prueba</p>
                 <p className="mt-2">Paciente: patient1@test.com / password123</p>
                 <p>Doctor: doctor@test.com / password123</p>
+                <p>Cuidador: caregiver@test.com / password123</p>
               </div>
             </div>
           </div>

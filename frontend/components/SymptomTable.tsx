@@ -26,7 +26,12 @@ export function SymptomTable({
             const st = statusLabel(s);
             return (
               <tr key={s.id} className="text-ink/80">
-                <td className="px-6 py-3 font-medium text-ink">{formatDate(s.loggedDate, true)}</td>
+                <td className="px-6 py-3 font-medium text-ink">
+                  {formatDate(s.loggedDate, true)}
+                  {s.loggedBy?.role === 'CAREGIVER' && (
+                    <span className="block text-xs font-normal text-ink/50">por {s.loggedBy.fullName} (cuidador/a)</span>
+                  )}
+                </td>
                 <td className="px-3 py-3">{s.painLevel}/10</td>
                 <td className="px-3 py-3">{s.fatigueLevel}/10</td>
                 <td className="px-3 py-3">{s.nauseaLevel}/10</td>

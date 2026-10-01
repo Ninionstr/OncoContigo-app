@@ -6,6 +6,8 @@ const prisma = new PrismaClient();
 
 // Datos de DEMO. Contraseña de todas las cuentas: password123
 async function main() {
+  await prisma.caregiverInvite.deleteMany();
+  await prisma.caregiverLink.deleteMany();
   await prisma.alert.deleteMany();
   await prisma.symptomLog.deleteMany();
   await prisma.patientProfile.deleteMany();
@@ -15,6 +17,10 @@ async function main() {
 
   const doctor = await prisma.user.create({
     data: { email: 'doctor@test.com', fullName: 'Dra. Camila Rojas', role: 'DOCTOR', passwordHash },
+  });
+
+  const caregiver = await prisma.user.create({
+    data: { email: 'caregiver@test.com', fullName: 'Pedro González', role: 'CAREGIVER', passwordHash },
   });
 
   const patients = [
@@ -33,6 +39,14 @@ async function main() {
         patientProfile: { create: { diagnosis: p.diagnosis, treatmentType: p.treatmentType, doctorId: doctor.id } },
       },
     });
+
+    // Pedro acompaña a su madre, María (patient1)
+    const hasCaregiver = p.email === 'patient1@test.com';
+    if (hasCaregiver) {
+      await prisma.caregiverLink.create({
+        data: { patientId: user.id, caregiverId: caregiver.id, relationship: 'Hijo' },
+      });
+    }
 
     // 14 días de historial (el registro de "hoy" queda pendiente para patient1)
     for (let daysAgo = 14; daysAgo >= (p.email === 'patient1@test.com' ? 1 : 0); daysAgo--) {
@@ -62,6 +76,8 @@ async function main() {
           overallStatus,
           loggedDate,
           patientId: user.id,
+          // En los días más difíciles registra el cuidador
+          loggedById: hasCaregiver && daysAgo <= 3 ? caregiver.id : user.id,
           alerts: {
             create: alerts.map((a) => ({
               ...a,

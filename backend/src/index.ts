@@ -5,6 +5,7 @@ import { authRouter } from './routes/auth.js';
 import { patientsRouter } from './routes/patients.js';
 import { symptomsRouter } from './routes/symptoms.js';
 import { alertsRouter } from './routes/alerts.js';
+import { caregiversRouter } from './routes/caregivers.js';
 
 const app = express();
 // API_PORT tiene prioridad para no chocar con el PORT del frontend en desarrollo; los hostings suelen inyectar PORT.
@@ -21,6 +22,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/patients', patientsRouter);
 app.use('/api/symptoms', symptomsRouter);
 app.use('/api/alerts', alertsRouter);
+app.use('/api/caregivers', caregiversRouter);
 
 app.use((_req, res) => {
   res.status(404).json({ error: 'Ruta no encontrada.' });

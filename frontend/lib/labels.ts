@@ -20,6 +20,7 @@ export interface Symptom {
   notes?: string | null;
   overallStatus: OverallStatus;
   loggedDate: string;
+  loggedBy?: { fullName: string; role: 'PATIENT' | 'DOCTOR' | 'CAREGIVER' } | null;
 }
 
 export interface Alert {
@@ -43,6 +44,18 @@ export const statusMeta: Record<OverallStatus, { label: string; badge: string; d
     dot: 'bg-coral-600',
   },
 };
+
+// Versión para cuidadores (en tercera persona)
+export const caregiverStatusLabel: Record<OverallStatus, string> = {
+  GOOD: 'Se siente bien',
+  FAIR: 'Día regular',
+  POOR: 'Día difícil',
+  CRITICAL: 'Conviene una revisión médica',
+};
+
+export function isToday(iso: string) {
+  return new Date(iso).toDateString() === new Date().toDateString();
+}
 
 // Versión clínica (para el panel médico)
 export const clinicalStatusLabel: Record<OverallStatus, string> = {

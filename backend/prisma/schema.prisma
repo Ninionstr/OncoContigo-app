@@ -14,13 +14,41 @@ model User {
   email        String   @unique
   passwordHash String
   fullName     String
-  role         String // PATIENT | DOCTOR
+  role         String // PATIENT | DOCTOR | CAREGIVER
   createdAt    DateTime @default(now())
 
-  patientProfile   PatientProfile?  @relation("PatientUser")
-  assignedPatients PatientProfile[] @relation("AssignedDoctor")
-  symptomLogs      SymptomLog[]
+  patientProfile   PatientProfile?   @relation("PatientUser")
+  assignedPatients PatientProfile[]  @relation("AssignedDoctor")
+  symptomLogs      SymptomLog[]      @relation("PatientLogs")
+  loggedSymptoms   SymptomLog[]      @relation("LoggedBy")
   alerts           Alert[]
+  caregivers       CaregiverLink[]   @relation("LinkPatient")
+  caringFor        CaregiverLink[]   @relation("LinkCaregiver")
+  caregiverInvites CaregiverInvite[]
+}
+
+// Vínculo paciente–cuidador. El paciente puede revocarlo en cualquier momento.
+model CaregiverLink {
+  id           String   @id @default(cuid())
+  patientId    String
+  patient      User     @relation("LinkPatient", fields: [patientId], references: [id], onDelete: Cascade)
+  caregiverId  String
+  caregiver    User     @relation("LinkCaregiver", fields: [caregiverId], references: [id], onDelete: Cascade)
+  relationship String? // Ej: Hija, Pareja, Amigo
+  createdAt    DateTime @default(now())
+
+  @@unique([patientId, caregiverId])
+}
+
+// Código de invitación de un solo uso que el paciente comparte con su cuidador.
+model CaregiverInvite {
+  id        String    @id @default(cuid())
+  code      String    @unique
+  patientId String
+  patient   User      @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
 }
 
 model PatientProfile {
@@ -36,7 +64,10 @@ model PatientProfile {
 model SymptomLog {
   id            String   @id @default(cuid())
   patientId     String
-  patient       User     @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  patient       User     @relation("PatientLogs", fields: [patientId], references: [id], onDelete: Cascade)
+  // Quién hizo el registro: el propio paciente o un cuidador
+  loggedById    String?
+  loggedBy      User?    @relation("LoggedBy", fields: [loggedById], references: [id], onDelete: SetNull)
   painLevel     Int
   fever         Boolean
   temperature   Float?

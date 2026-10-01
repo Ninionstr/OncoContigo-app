@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { prisma } from '../lib/prisma.js';
 import { issueTokens, requireAuth, verifyRefreshToken } from '../lib/auth.js';
 import { TREATMENT_TYPES, type Role } from '../lib/constants.js';
+import { redeemInvite } from './caregivers.js';
 
 export const authRouter = Router();
 
@@ -18,6 +19,14 @@ const registerSchema = z.object({
   password: z.string().min(8, 'La contraseña debe tener al menos 8 caracteres.'),
   diagnosis: z.string().trim().min(2),
   treatmentType: z.enum(TREATMENT_TYPES),
+});
+
+const caregiverRegisterSchema = z.object({
+  fullName: z.string().trim().min(2),
+  email: z.email(),
+  password: z.string().min(8, 'La contraseña debe tener al menos 8 caracteres.'),
+  inviteCode: z.string().trim().min(4, 'Ingresa el código que te compartió el paciente.'),
+  relationship: z.string().trim().max(40).optional(),
 });
 
 function tokensFor(user: { id: string; role: string; email: string }) {
@@ -64,6 +73,36 @@ authRouter.post('/register', async (req, res) => {
   });
   res.status(201).json(tokensFor(user));
 });
+
+// Registro de cuidadores: requiere un código de invitación generado por el paciente.
+authRouter.post('/register-caregiver', async (req, res) => {
+  const parsed = caregiverRegisterSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ error: parsed.error.issues[0]?.message ?? 'Datos inválidos.' });
+  }
+  const { fullName, password, inviteCode, relationship } = parsed.data;
+  const email = parsed.data.email.toLowerCase();
+
+  if (await prisma.user.findUnique({ where: { email } })) {
+    return res.status(409).json({ error: 'Ya existe una cuenta con ese correo.' });
+  }
+
+  const passwordHash = await bcrypt.hash(password, 10);
+  const result = await prisma.$transaction(async (tx) => {
+    const user = await tx.user.create({ data: { email, fullName, role: 'CAREGIVER', passwordHash } });
+    const error = await redeemInvite(tx, inviteCode, user.id, relationship);
+    if (error) throw new InviteError(error);
+    return user;
+  }).catch((err) => {
+    if (err instanceof InviteError) return err;
+    throw err;
+  });
+
+  if (result instanceof InviteError) return res.status(400).json({ error: result.message });
+  res.status(201).json(tokensFor(result));
+});
+
+class InviteError extends Error {}
 
 authRouter.post('/refresh', async (req, res) => {
   try {

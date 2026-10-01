@@ -1,20 +1,21 @@
 import { Router } from 'express';
 import { prisma } from '../lib/prisma.js';
 import { requireAuth, requireRole } from '../lib/auth.js';
+import { visiblePatientsWhere } from '../lib/access.js';
 
 export const alertsRouter = Router();
 
 alertsRouter.use(requireAuth);
 
-// ?status=ACTIVE (por defecto) | RESOLVED | ALL
+// ?status=ACTIVE (por defecto) | RESOLVED | ALL · ?patientId= para filtrar un paciente
 alertsRouter.get('/', async (req, res) => {
   const status = String(req.query.status ?? 'ACTIVE').toUpperCase();
   const statusFilter = status === 'ALL' ? {} : { status };
 
-  const scope =
-    req.user!.role === 'DOCTOR'
-      ? { patient: { patientProfile: { doctorId: req.user!.sub } } }
-      : { patientId: req.user!.sub };
+  const scope = {
+    patient: visiblePatientsWhere(req.user!),
+    ...(req.query.patientId ? { patientId: String(req.query.patientId) } : {}),
+  };
 
   const alerts = await prisma.alert.findMany({
     where: { ...scope, ...statusFilter },

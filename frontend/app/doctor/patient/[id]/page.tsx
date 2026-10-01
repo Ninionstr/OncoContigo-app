@@ -23,6 +23,7 @@ interface PatientDetail {
   patientProfile?: { diagnosis: string; treatmentType: string };
   symptomLogs: Symptom[];
   alerts: Alert[];
+  caregivers: { relationship: string | null; caregiver: { id: string; fullName: string } }[];
 }
 
 export default function DoctorPatientPage() {
@@ -95,6 +96,15 @@ export default function DoctorPatientPage() {
           badge={latest ? statusMeta[latest.overallStatus].badge : undefined}
         />
       </div>
+
+      {patient.caregivers.length > 0 && (
+        <div className="mb-8 rounded-3xl border border-sage-100 bg-sage-50 px-6 py-4 text-sm text-ink/80">
+          <span className="font-semibold text-ink">Cuidadores: </span>
+          {patient.caregivers
+            .map((c) => `${c.caregiver.fullName}${c.relationship ? ` (${c.relationship.toLowerCase()})` : ''}`)
+            .join(', ')}
+        </div>
+      )}
 
       <section className="mb-8 overflow-hidden rounded-[2rem] border border-brand-100 bg-white shadow-sm">
         <div className="border-b border-brand-50 p-6">
